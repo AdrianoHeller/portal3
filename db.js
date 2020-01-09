@@ -1,62 +1,89 @@
 const MongoClient = require('mongodb').MongoClient
 const ObjectId = require('mongodb').ObjectId
 const data = {
-    db: 'portal3',
-    collection: 'users',
-    address: 'mongodb+srv://ragnar:ragnar18@cluster0-sls0k.mongodb.net/test?retryWrites=true&w=majority'
+    db : 'portal3',
+    collection : 'users',
+    address : 'mongodb://localhost:27017'
 }
 const fs = require('fs')
 const { db, collection, address} = data
-let connection = MongoClient.connect(address,(err,conn) => {
-    if(err){
-        return(`Erro:${e}`)
-    }else{
-        conn = global.conn
-        global.conn = conn.db
-        return(conn.db)
-    }
-})
- console.log(connection)
+const os = require('os')
+const dns = require('dns')
 
-const consultaDados = (callback) => {
-    global.conn.collection.find().toArray(callback)
-}
+const connection = MongoClient.connect(address)
+    .then(conn => global.conn = conn.db(db))
+    .then(() => console.log('Conexão com mongodb feita com sucesso'))
+    .catch(err => console.log(err))
 
-const consultaDadoEspecifico = (callback,_id) => {
-    global.conn.collection.findOne(callback,_id)
-}
+const consultaDadoEspecifico = _id => new Promise((resolve,reject) => {
+    global.conn.collection(collection).findOne(_id,(err,register) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(register)
+        }
+    });
+});
 
-const consultaListasUsers = (callback) => {
-    let machineKernel = fs.fstat(callback)
-    return machineKernel
-} 
+const consultaDados = () => new Promise((resolve,reject) => {
+    global.conn.collection(collection).find().toArray((err,lista) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(lista)
+        }
+    });
+});
 
-const insereDados = (data,callback) => {
-    global.conn.collection.insert(data,callback)
-}
 
-const alteraDados = (_id,data,callback) => {
-    global.conn.collection.updateOne({_id:ObjectId(_id)},{$set:{data}},callback)
-}
+const insereDados = data => new Promise((resolve,reject) => {
+    global.conn.collection(collection).insertOne(data,(err,data) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(data)
+        }
+    }); 
+});
 
-const removeDados = (_id,callback) => {
-    global.conn.collection.deleteOne(_id,callback)
-}
+const alteraTotal = (id,data) => new Promise((resolve,reject) => {
+    global.conn.collection(collection).update({_id:ObjectId(id)},{data},(err,dataNew) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(dataNew)
+        }
+    });
+});
 
-const filtraUserDb = (list,testMassList) => {
-    list.filter(item => {
-        item in testMassList
-    })
-}
+
+const alteraDados = (id,data) => new Promise((resolve,reject) => {
+    global.conn.collection(collection).updateOne({_id:ObjectId(id)},{$set:data},(err,dataUp) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(dataUp)
+        }
+    });
+});
+
+const removeDados = _id => new Promise((resolve,reject) => {
+    global.conn.collection(collection).deleteOne(_id,(err,dataRemove) => {
+        if(err){
+            reject(err)
+        }else{
+            resolve(dataRemove)
+        }
+    });
+});
 
 module.exports = {
     consultaDados,
     consultaDadoEspecifico,
-    consultaListasUsers,
     insereDados,
     alteraDados,
+    alteraTotal,
     removeDados,
-    filtraUserDb,
     ObjectId,
-    MongoClient
+    connection
 }

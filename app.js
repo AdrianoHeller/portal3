@@ -1,76 +1,53 @@
-const db = require('./db')
+global.db = require('./db')
 const express = require('express')
 const app = express()
 const port = 3000
 const bodyParser = require('body-parser')
 
-if(!port):
+if(!port){
     port == 3000
+}   
 
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
-app.get('/',(req,res) => {
-    db.consultaDados((data,err) => {
-        try{           
-           data.forEach(item => {
-            let keys = data[item].keys() 
-            let values = data[item].values() 
-            return item = `1:${keys},2:${values}`            
-           })res.json(data)            
-        }catch(error as err){
-            res.json(`Erro: ${err}`)
-        }
-    })
-})
-
-app.get('/mdata',(req,res) => {
-    db.consultaListasUsers((data,err) => {
-        try{
-            res.json(data)
-        }catch(error as err){
-            res.json(`Erro: ${err}`)
-        }
-    })    
-})
-
-app.post('/user',(req,res) => {
-    const data = req.body
-    db.insere((data,err) => {
-       try{
-           res.json(data)
-       }catch(error as err) {
-           res.json(`Erro:${err}`)
-       }
-    });
+app.get('/',async (req,res) => {        
+await global.db.consultaDados()
+        .then((data) => res.json(data))
+        .catch(err => res.json(err))       
 });
 
-app.put('/:_id',(req,res) => {
-    const { _id } = req.params
-    db.alteraDados((_id,data,err) => {
-        try {
-            res.json(data)
-        }catch(error as err) {
-            res.json(`Erro:${err}`)
-        }
-    });
+app.get('/mdata',async(req,res) => {    
+    let dataArray = await Array(os.userInfo(),os.hostname())
+    res.json(dataArray)
+})
+
+app.post('/user', async(req,res) => {
+    const data = req.body
+    global.db.insereDados(await data)
+        .then(data => res.json(data)) 
+        .catch(err => res.json(err))    
 });
 
-app.patch('/:_id',(req,res) => {
-    const { id } = req.params
-    const data = req.body
-    db.alteraDados((id,data,err) => {
-        try{
-            res.json(data)
-        }catch(error as err){
-            res.json(`Erro: ${err}`)
-        }
-    })
-})
+app.put('/updateAll/:id', async(req,res) => {
+    const { id } = await req.params
+    const data = await req.body
+    global.db.alteraTotal(id,data)
+        .then(data => res.json(data))
+        .catch(err => console.log(err))
+});
+
+app.patch('/updateTopic/:id',async(req,res) => {
+    const { id } = await req.params
+    const data = await req.body
+    global.db.alteraDados(id,data)
+        .then(data => res.json(data))
+        .catch(err => console.log(err))
+
 
 app.listen(port,err => {
     if(err) res.json(err)
     else{
-    console.log(`Servidor ouvindo na porta ${port}`)
+        console.log(`Servidor ouvindo na porta ${port}`)
     } 
-})
+});
 
