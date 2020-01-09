@@ -10,6 +10,7 @@ if(!port){
 
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
+
 app.get('/',async (req,res) => {        
 await global.db.consultaDados()
         .then((data) => res.json(data))
@@ -42,12 +43,12 @@ app.patch('/updateTopic/:id',async(req,res) => {
     global.db.alteraDados(id,data)
         .then(data => res.json(data))
         .catch(err => console.log(err))
-
+});
 
 app.listen(port,err => {
     if(err) res.json(err)
     else{
         console.log(`Servidor ouvindo na porta ${port}`)
     } 
-});
+})
 
