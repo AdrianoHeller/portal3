@@ -5,10 +5,10 @@ const data = {
     collection : 'users',
     address : 'mongodb://localhost:27017'
 }
-const fs = require('fs')
+// const fs = require('fs')
 const { db, collection, address} = data
-const os = require('os')
-const dns = require('dns')
+// const os = require('os')
+// const dns = require('dns')
 
 const connection = MongoClient.connect(address)
     .then(conn => global.conn = conn.db(db))
